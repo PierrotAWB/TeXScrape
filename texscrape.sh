@@ -16,22 +16,28 @@ process_url () {
 		sed "s/<\/body>//g")
 	body=$(sanitize "$body")
 	filename=$(echo $title | sed "s/ /-/g")
-	printf "\section{%s}\n%s\n" "$title" "$body" > "$filename.tex"
-	printf "\include{%s}\n" "$filename.tex" >> output.tex
+	printf "\section{%s}\n%s\n" "$title" "$body" > "$2/chapters/$filename.tex"
+	printf "\include{chapters/%s}\n" "$filename.tex" >> "$2/output.tex"
 }
 
 main () {
-	if [ "$#" -ne 1 ]; then
-		echo "texscrape <filename>"
-	fi
-
-	printf "\documentclass[12pt]{article}\n%bbegin{document}\n" "\\" > output.tex
-
+	mkdir "$2/chapters"
+	printf "\documentclass[12pt]{article}\n%bbegin{document}\n" '\\' > "$2/output.tex"
 	while read -r line; do
-		process_url "$line"
-	done < $1
-
-	printf "%bend{document}" "\\" >> output.tex
+		process_url "$line" $2
+	done < "$1"
+	printf "%bend{document}" '\\' >> "$2/output.tex"
 }	
 
-main $1
+if [ "$#" -ne 2 ]; then 
+	echo "usage: texscrape <manifest> <output directory>"
+	exit 1
+fi
+
+
+if [ ! -d "$2" ]; then
+	echo "Error: Unable to find output directory \"$2\""
+	exit 1 
+fi
+
+main $@
