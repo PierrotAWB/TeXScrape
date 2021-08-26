@@ -10,15 +10,15 @@ sanitize () {
 
 format () {
 	echo $@ |
-		sed 's|<br><br><br>|\n\\vspace{\\baselineskip}\n|g' |    # Large line breaks
 		sed "s|<br>|\n|g" |      						# Line breaks
 		sed 's|<i>\([^<]*\)</i>|\\textit{\1}|g' | 		# Italics
 		sed 's|<b>\([^<]*\)</b>|\\textbf{\1}|g' | 		# Bold 
+		sed 's|<u>\([^<]*\)</u>|\1|g' | 				# Underline 
 		sed 's|<blockquote>\([^<]*\)<\/blockquote>|\\begin{quote}\1\\end{quote}|g'
 }
 
 run_custom () {
-	printf '%s\n' "$*" | sed -f "$cmd_file"
+	printf '%s\n' "$*" | "./$cmd_file"
 }
 
 process_url () {
@@ -30,8 +30,7 @@ process_url () {
 		sed "s|<\/body>||g")
 	body=$(sanitize "$body")
 	body=$(format "$body")
-
-	body=$(run_custom "$body")
+	body=$(./"$cmd_file" "$body")
 
 	filename=$(echo $title | sed "s/ /-/g")
 	printf "%bchapter{%s}\n%s\n" '\\' "$title" "$body" > "$2/chapters/$filename.tex"
